@@ -1,0 +1,115 @@
+﻿@{
+    ViewData["Title"] = "Micro-ondas Digital";
+}
+
+<h1>Micro-ondas Digital</h1>
+
+<!-- Formulário principal de aquecimento -->
+<form id="aquecimentoForm" method="post" asp-controller="Microondas" asp-action="Aquecer">
+    <label>Tempo (segundos): </label>
+    <input type="number" name="tempo" id="tempo" min="1" max="120" required />
+
+    <label>Potência: </label>
+    <input type="number" name="potencia" id="potencia" min="1" max="10" value="10" />
+
+    <button type="submit">Iniciar Aquecimento</button>
+</form>
+
+<!-- Botão de início rápido -->
+<form id="inicioRapidoForm" method="post" asp-controller="Microondas" asp-action="InicioRapido">
+    <button type="submit">Início Rápido</button>
+</form>
+
+<!-- Botão de pausa/cancelamento -->
+<form id="pausarCancelarForm" method="post" asp-controller="Microondas" asp-action="PausarOuCancelar">
+    <button type="submit" id="btnPausarCancelar">Pausar Aquecimento</button>
+</form>
+
+<p><strong>Status:</strong> <span id="status">@ViewBag.Resultado</span></p>
+<p><strong>Tempo restante:</strong> <span id="tempoRestante">@ViewBag.TempoRestante</span></p>
+
+
+<!-- Simulação de aquecimento com JavaScript -->
+<script>
+    let aquecimentoIntervalId;
+    let tempoRestante = 0;
+    let emAquecimento = false;
+    let pausado = false;
+
+    function iniciarAquecimento(tempo, potencia) {
+        if (emAquecimento && !pausado) {
+            // Adiciona 30 segundos se já estiver aquecendo
+            tempoRestante += 30;
+        } else {
+            tempoRestante = tempo;
+            emAquecimento = true;
+            pausado = false;
+            document.getElementById('btnPausarCancelar').innerText = "Pausar Aquecimento";
+        }
+
+        const statusLabel = document.getElementById('status');
+        const tempoRestanteLabel = document.getElementById('tempoRestante');
+        let progresso = "";
+        let interval = 1000;  // Agora o intervalo é de 1 segundo para contar o tempo corretamente
+        let pontosPorPotencia = ".".repeat(potencia);
+
+        clearInterval(aquecimentoIntervalId); // Limpa qualquer intervalo anterior
+
+        aquecimentoIntervalId = setInterval(function() {
+            if (tempoRestante <= 0 || pausado) {
+                clearInterval(aquecimentoIntervalId);
+                if (!pausado) {
+                    emAquecimento = false;
+                    statusLabel.innerText = progresso + " Aquecimento concluído.";
+                    tempoRestanteLabel.innerText = "0 segundos restantes";
+                    document.getElementById('btnPausarCancelar').innerText = "Cancelar Aquecimento";
+                }
+            } else {
+                progresso += pontosPorPotencia;
+                tempoRestante--;
+                statusLabel.innerText = progresso;
+                tempoRestanteLabel.innerText = `${tempoRestante} segundos restantes`;
+            }
+        }, interval);
+    }
+
+    // Captura o evento do formulário de aquecimento normal
+    document.getElementById('aquecimentoForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evita o envio padrão do formulário
+
+        const tempo = parseInt(document.getElementById('tempo').value);
+        const potencia = parseInt(document.getElementById('potencia').value);
+
+        iniciarAquecimento(tempo, potencia);
+    });
+
+    // Captura o evento do formulário de início rápido
+    document.getElementById('inicioRapidoForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evita o envio padrão do formulário
+
+        const tempoRapido = 30;  // Início rápido: 30 segundos
+        const potenciaRapida = 10;  // Potência padrão: 10
+
+        iniciarAquecimento(tempoRapido, potenciaRapida);
+    });
+
+    // Captura o evento do botão de pausa/cancelamento
+    document.getElementById('pausarCancelarForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evita o envio padrão do formulário
+
+        if (emAquecimento && !pausado) {
+            pausado = true;
+            clearInterval(aquecimentoIntervalId);
+            document.getElementById('btnPausarCancelar').innerText = "Cancelar Aquecimento";
+        } else if (emAquecimento && pausado) {
+            // Cancela o aquecimento se estiver pausado
+            pausado = false;
+            emAquecimento = false;
+            tempoRestante = 0;
+            clearInterval(aquecimentoIntervalId);
+            document.getElementById('status').innerText = "Aquecimento cancelado.";
+            document.getElementById('tempoRestante').innerText = "0 segundos restantes";
+            document.getElementById('btnPausarCancelar').innerText = "Pausar Aquecimento";
+        }
+    });
+</script>
