@@ -1,4 +1,4 @@
-Micro-ondas Digital:
+Bem vindo ao Micro-ondas Digital:
 Este projeto implementa um micro-ondas digital utilizando ASP.NET Core para a parte web e C# para a lógica de backend. O sistema permite que os usuários informem o tempo e a potência do aquecimento, além de fornecer funcionalidades adicionais como início rápido, pausa e cancelamento do aquecimento.
 
 Requisitos Atendidos:
